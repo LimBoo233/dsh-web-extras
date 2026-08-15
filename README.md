@@ -16,7 +16,7 @@ DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 ### 方式一：GitHub（源码安装，自动构建）
 
 ```sh
-dsh plugin --profile web add github:<你的用户名>/dsh-web-extras
+dsh plugin --profile web add github:LimBoo233/dsh-web-extras
 ```
 
 首次安装时 pnpm 会要求允许构建脚本（pnpm ≥ 10）。若失败，按提示把包名加入 profile 的 `pnpm-workspace.yaml` 的 `allowBuilds` 后重试：
@@ -26,12 +26,12 @@ allowBuilds:
   dsh-web-extras: true
 ```
 
-> 这是对包内代码的信任授权：仅安装你信任来源的包，并建议固定 commit（`github:<你的用户名>/dsh-web-extras#<sha>`）。
+> 这是对包内代码的信任授权：仅安装你信任来源的包，并建议固定 commit（`github:LimBoo233/dsh-web-extras#<sha>`）。
 
 ### 方式二：tarball
 
 ```sh
-git clone <你的仓库地址>
+git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
 pnpm pack          # 生成 dsh-web-extras-0.1.0.tgz
