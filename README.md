@@ -59,6 +59,16 @@ dsh plugin --profile web remove dsh-web-extras
 
 完成提醒触发时机：任意会话从「运行中」转为「空闲」时（右下角弹出，5 秒自动消失，点击可关闭）。
 
+## 效果预览
+
+**完成提醒设置页**（提示音开关 + 立绘上传/裁剪/翻转）：
+
+![完成提醒设置页](docs/screenshot-notify.png)
+
+**外观设置页**（背景图 + 实时预览 + 透明度/折叠）：
+
+![外观设置页](docs/screenshot-appearance.png)
+
 ## 数据与隐私
 
 | 数据 | 存储位置 | 说明 |
