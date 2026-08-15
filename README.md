@@ -7,6 +7,8 @@ DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 
 纯浏览器端实现（client 插件），无 Host 侧代码；所有配置与图片数据保存在本地浏览器，不经过任何服务器。
 
+![效果展示](docs/screenshot-effect.png)
+
 ## 安装
 
 要求：已安装 DeepSeek Harness CLI，并使用 Web 界面（`dsh --profile web`）。
