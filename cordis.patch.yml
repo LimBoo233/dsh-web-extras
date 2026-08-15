@@ -1,0 +1,6 @@
+# dsh-web-extras 插件行：浏览器端增强（完成提醒 + 外观定制）。
+# 挂载后由 dsh-web-app 的 client roster 提供浏览器半（dsh.client 声明），
+# 无需任何 Host 侧代码。
+- insert:
+    - id: web-extras
+      name: dsh-web-extras
