@@ -7,7 +7,7 @@ import { applyNotify } from './notify.js'
 import { applyAppearance } from './appearance.js'
 
 export const name = 'dsh-web-extras'
-export const inject = ['timer']
+export const inject = ['timer', 'slots', 'theme']
 
 export function apply(ctx) {
   applyNotify(ctx)

@@ -33,7 +33,7 @@ git clone <你的仓库地址>
 cd dsh-web-extras
 pnpm install
 pnpm pack          # 生成 dsh-web-extras-0.1.0.tgz
-dsh plugin --profile web add ./dsh-web-extras-0.1.0.tgz
+dsh plugin --profile web add ./dsh-web-extras-0.1.1.tgz
 ```
 
 ### 方式三：npm（若已发布）

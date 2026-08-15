@@ -4,6 +4,7 @@
  * 图片内容持久化在 IndexedDB，开关状态持久化在 localStorage。
  */
 import * as React from 'react'
+import { styles } from './styles.js'
 
 const KEY = 'dsh-ntfy-config'
 const CROP = 240

@@ -4,6 +4,7 @@
  * 配置持久化在 localStorage，本地图片内容持久化在 IndexedDB。
  */
 import * as React from 'react'
+import { styles } from './styles.js'
 
 // 输入区折叠 CSS：焦点不在输入卡时把文本区压到 N 行（保留余量）。
 // 不隐藏工具行（模型/访问模式/发送按钮保持可用），也不压缩内边距（文字与边框保持默认距离）。
@@ -234,7 +235,7 @@ export function applyAppearance(ctx) {
     }
     if (disposer) { disposer(); disposer = null }
     if (Object.keys(tokens).length > 0) {
-      disposer = theme.overrideTokens('dsh-styl', tokens)
+      disposer = theme.overrideTokens('dsh-web-extras:appearance', tokens)
     }
     syncFoldCss()
     persist()
@@ -320,6 +321,8 @@ export function applyAppearance(ctx) {
   syncFoldCss()
   refreshBg()
   restoreStoredImage()
+  // 立即应用当前配置（默认透明度等），否则要等用户动一次设置才生效
+  apply()
 
   // 插件停止 / 更新时移除覆盖层与折叠样式，并释放本地文件与翻转图临时 URL
   ctx.effect(() => () => {
