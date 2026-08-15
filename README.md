@@ -1,8 +1,11 @@
 # dsh-web-extras
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-0.1.1-blue)
+
 DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 
-1. **完成提醒**：会话完成时播放提示音，并可弹出立绘图片（支持上传/裁剪/翻转）。
+1. **完成提醒**：会话完成时播放提示音（可开关/试听），并可弹出立绘图片（支持上传/裁剪/翻转）。
 2. **外观定制**：背景图（URL / 本地图片 + 水平翻转 + 预览 + 缩放 + 位置 + 透明度）、侧边栏/气泡/输入区/代码块透明度、输入区失焦折叠。
 
 纯浏览器端实现（client 插件），无 Host 侧代码；所有配置与图片数据保存在本地浏览器，不经过任何服务器。
@@ -11,7 +14,7 @@ DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 
 ## 安装
 
-要求：已安装 DeepSeek Harness CLI，并使用 Web 界面（`dsh --profile web`）。
+要求：已安装 DeepSeek Harness CLI，并使用 Web 界面（`dsh --profile web`）。任选一种方式安装后，**重启 dsh 并刷新浏览器页面**即可生效。
 
 ### 方式一：GitHub（源码安装，自动构建）
 
@@ -34,7 +37,7 @@ allowBuilds:
 git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
-pnpm pack          # 生成 dsh-web-extras-0.1.0.tgz
+pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.1.1；pack 会先自动构建 lib/）
 dsh plugin --profile web add ./dsh-web-extras-0.1.1.tgz
 ```
 
@@ -43,8 +46,6 @@ dsh plugin --profile web add ./dsh-web-extras-0.1.1.tgz
 ```sh
 dsh plugin --profile web add dsh-web-extras
 ```
-
-安装后**重启 dsh**（或重建前端产物），刷新浏览器页面即可生效。
 
 ### 卸载
 
