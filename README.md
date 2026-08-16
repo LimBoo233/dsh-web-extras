@@ -42,12 +42,6 @@ pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.2.1；pack
 dsh plugin --profile web add ./dsh-web-extras-0.2.1.tgz
 ```
 
-### 方式三：npm（若已发布）
-
-```sh
-dsh plugin --profile web add dsh-web-extras
-```
-
 ### 卸载
 
 ```sh
