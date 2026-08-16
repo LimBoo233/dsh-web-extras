@@ -1,7 +1,7 @@
 # dsh-web-extras
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 
 DeepSeek Harness Web 界面增强插件（bundle），包含三个功能：
 
@@ -38,8 +38,8 @@ allowBuilds:
 git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
-pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.2.0；pack 会先自动构建 lib/）
-dsh plugin --profile web add ./dsh-web-extras-0.2.0.tgz
+pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.2.1；pack 会先自动构建 lib/）
+dsh plugin --profile web add ./dsh-web-extras-0.2.1.tgz
 ```
 
 ### 方式三：npm（若已发布）
@@ -74,6 +74,10 @@ dsh plugin --profile web remove dsh-web-extras
 
 ## 变更日志
 
+### v0.2.1
+
+- 新增「文件变更」效果预览截图（已压缩），并将 docs 目录纳入发布包。
+
 ### v0.2.0
 
 - 新增「文件变更」会话页签：按轮次聚合 write / edit / str_replace_editor 的修改，最新轮次置顶，彩色标签区分轮次，并展示每轮用户消息（可展开）。
@@ -83,6 +87,10 @@ dsh plugin --profile web remove dsh-web-extras
 - 提醒设置页新增提示：立绘意外消失时，点击「裁剪并保存」即可恢复。
 
 ## 效果预览
+
+**文件变更页签**（按轮次分组、彩色标签、用户消息、行级差异与高亮对比）：
+
+![文件变更效果](docs/screenshot-file-changes.jpg)
 
 **提醒设置页**（三种事件卡片 + 逐个试听 + 立绘上传/裁剪/翻转）：
 
