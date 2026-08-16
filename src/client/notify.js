@@ -364,6 +364,7 @@ export function applyNotify(ctx) {
         eventCard('question', '向你提问', 'questionSound', 'questionImage'),
       ),
       React.createElement('div', { className: 'dsh-ntfy-group' },
+        React.createElement('div', { className: 'dsh-ntfy-hint' }, '如果立绘意外消失，点击下方「裁剪并保存」即可重新恢复。'),
         React.createElement('div', { className: 'dsh-ntfy-group-label' }, '提醒立绘'),
         React.createElement('div', { className: 'dsh-ntfy-card' },
           state.objUrl

@@ -1,6 +1,6 @@
 /**
  * 外观定制：背景图（URL / 本地图片，支持水平翻转、预览、缩放、位置、透明度）、
- * 侧边栏/气泡/输入区/代码块透明度、输入区失焦折叠。
+ * 侧边栏/气泡/输入区/代码块/文件变更卡片透明度、输入区失焦折叠。
  * 配置持久化在 localStorage，本地图片内容持久化在 IndexedDB。
  */
 import * as React from 'react'
@@ -18,24 +18,28 @@ export function applyAppearance(ctx) {
   if (theme === undefined || slots === undefined) return
 
   styles.insert(`
-.dsh-styl-page { display: flex; flex-direction: column; gap: 16px; }
-.dsh-styl-group { display: flex; flex-direction: column; gap: 8px; }
-.dsh-styl-lbl { font-size: 12px; color: var(--dsw-alias-label-secondary); font-weight: 600; }
-.dsh-styl-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.dsh-styl-btn { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
-.dsh-styl-btn:hover { background: var(--dsw-alias-bg-overlay); }
+.dsh-styl-page { display: flex; flex-direction: column; gap: 12px; }
+.dsh-styl-group { display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l2); border-radius: 14px; }
+.dsh-styl-lbl { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--dsw-alias-label-primary); font-weight: 700; }
+.dsh-styl-sub-lbl { font-size: 12px; color: var(--dsw-alias-label-secondary); font-weight: 600; }
+.dsh-styl-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.dsh-styl-page > .dsh-styl-row { padding: 4px 2px; }
+.dsh-styl-btn { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 10px; padding: 6px 14px; font-size: 12px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+.dsh-styl-btn:hover { background: var(--dsw-alias-bg-overlay); border-color: var(--dsw-alias-border-l1); }
 .dsh-styl-btn.active { background: var(--dsw-alias-brand-primary); border-color: var(--dsw-alias-brand-primary); color: #fff; }
 .dsh-styl-btn:disabled { opacity: 0.4; cursor: default; }
-.dsh-styl-input { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 5px 10px; font-size: 12px; flex: 1; min-width: 200px; }
-.dsh-styl-range { flex: 1; min-width: 120px; }
+.dsh-styl-input { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 10px; padding: 7px 12px; font-size: 12px; flex: 1; min-width: 200px; }
+.dsh-styl-input:focus { border-color: var(--dsw-alias-brand-primary); outline: none; }
+.dsh-styl-range { flex: 1; min-width: 140px; accent-color: var(--dsw-alias-brand-primary); }
 .dsh-styl-range:disabled { opacity: 0.4; }
-.dsh-styl-num { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 4px 6px; font-size: 12px; width: 60px; }
+.dsh-styl-num { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 10px; padding: 6px 8px; font-size: 12px; width: 72px; text-align: center; }
+.dsh-styl-num:focus { border-color: var(--dsw-alias-brand-primary); outline: none; }
 .dsh-styl-num:disabled { opacity: 0.4; }
-.dsh-styl-hint { font-size: 11px; color: var(--dsw-alias-label-secondary); opacity: 0.8; }
-.dsh-styl-preview { position: relative; border: 1px solid var(--dsw-alias-border-l2); border-radius: 12px; overflow: hidden; background: var(--dsw-alias-bg-layer-2); display: grid; place-items: center; max-width: 100%; cursor: grab; touch-action: none; }
+.dsh-styl-hint { font-size: 11px; line-height: 1.6; color: var(--dsw-alias-label-secondary); opacity: 0.85; }
+.dsh-styl-preview { position: relative; border: 1px solid var(--dsw-alias-border-l2); border-radius: 14px; overflow: hidden; background: var(--dsw-alias-bg-layer-2); display: grid; place-items: center; max-width: 100%; cursor: grab; touch-action: none; }
 .dsh-styl-preview.dragging { cursor: grabbing; }
-.dsh-styl-preview-tag { position: absolute; top: 8px; left: 10px; font-size: 11px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-border-l1); border-radius: 6px; padding: 2px 8px; z-index: 1; }
-.dsh-styl-preview-hint { position: absolute; bottom: 8px; left: 10px; font-size: 11px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-border-l1); border-radius: 6px; padding: 2px 8px; }
+.dsh-styl-preview-tag { position: absolute; top: 10px; left: 12px; font-size: 11px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; padding: 3px 10px; z-index: 1; }
+.dsh-styl-preview-hint { position: absolute; bottom: 10px; left: 12px; font-size: 11px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-border-l1); border-radius: 8px; padding: 3px 10px; }
 `)
 
   // ---- 本地图片持久化：IndexedDB 保存图片内容本身 ----
@@ -146,6 +150,7 @@ export function applyAppearance(ctx) {
     bubbleOpacity: 80, // 右侧用户气泡不透明度（默认配置）
     inputOpacity: 96, // 下方输入卡不透明度（默认配置）
     codeOpacity: 85, // Markdown 代码块背景不透明度（默认配置）
+    changesCardOpacity: 70, // 文件变更卡片背景不透明度（默认配置）
     foldComposer: true, // 输入区失焦折叠（默认开启）
     foldLines: 3, // 折叠时保留的行数（默认配置）
     flipBg: false, // 背景图水平翻转（镜像）
@@ -388,6 +393,7 @@ export function applyAppearance(ctx) {
     const [bubbleOpacity, setBubbleOpacity] = React.useState(ui.bubbleOpacity)
     const [inputOpacity, setInputOpacity] = React.useState(ui.inputOpacity)
     const [codeOpacity, setCodeOpacity] = React.useState(ui.codeOpacity)
+    const [changesCardOpacity, setChangesCardOpacity] = React.useState(ui.changesCardOpacity)
     const [foldComposer, setFoldComposer] = React.useState(ui.foldComposer)
     const [foldLines, setFoldLines] = React.useState(ui.foldLines)
     const [flipBg, setFlipBg] = React.useState(ui.flipBg)
@@ -413,6 +419,10 @@ export function applyAppearance(ctx) {
       setRatioReady(ui.imgRatio !== null && !!ui.appliedBg)
     }
 
+    const emitChangesCardOpacity = (value) => {
+      try { window.dispatchEvent(new CustomEvent('dsh-chg-opacity-change', { detail: value })) } catch { /* event unavailable */ }
+    }
+
     // 一键恢复默认：透明度/折叠/位置缩放回默认值；背景图（URL/本地图片）与翻转原样保留
     const resetDefaults = () => {
       ui.opacity = 20
@@ -424,6 +434,7 @@ export function applyAppearance(ctx) {
       ui.bubbleOpacity = 80
       ui.inputOpacity = 96
       ui.codeOpacity = 85
+      ui.changesCardOpacity = 70
       ui.foldComposer = true
       ui.foldLines = 3
       setOpacity(20)
@@ -435,22 +446,27 @@ export function applyAppearance(ctx) {
       setBubbleOpacity(80)
       setInputOpacity(96)
       setCodeOpacity(85)
+      setChangesCardOpacity(70)
       setFoldComposer(true)
       setFoldLines(3)
       apply()
+      emitChangesCardOpacity(ui.changesCardOpacity)
     }
 
-    // 全部变回不透明：侧边栏/气泡/输入区/代码块透明度全部 100%（不动背景图与其透明度）
+    // 全部变回不透明：侧边栏/气泡/输入区/代码块/文件变更卡片透明度全部 100%（不动背景图与其透明度）
     const makeOpaque = () => {
       ui.sidebarOpacity = 100
       ui.bubbleOpacity = 100
       ui.inputOpacity = 100
       ui.codeOpacity = 100
+      ui.changesCardOpacity = 100
       setSidebarOpacity(100)
       setBubbleOpacity(100)
       setInputOpacity(100)
       setCodeOpacity(100)
+      setChangesCardOpacity(100)
       apply()
+      emitChangesCardOpacity(ui.changesCardOpacity)
     }
 
     const applyBg = () => {
@@ -495,6 +511,7 @@ export function applyAppearance(ctx) {
     const changeBubbleOpacity = (v) => { ui.bubbleOpacity = v; setBubbleOpacity(v); apply() }
     const changeInputOpacity = (v) => { ui.inputOpacity = v; setInputOpacity(v); apply() }
     const changeCodeOpacity = (v) => { ui.codeOpacity = v; setCodeOpacity(v); apply() }
+    const changeChangesCardOpacity = (v) => { ui.changesCardOpacity = v; setChangesCardOpacity(v); apply(); emitChangesCardOpacity(ui.changesCardOpacity) }
     const toggleFold = (v) => { ui.foldComposer = v; setFoldComposer(v); apply() }
     const changeFoldLines = (v) => { ui.foldLines = v; setFoldLines(v); apply() }
     const toggleFlip = (v) => { ui.flipBg = v; setFlipBg(v); refreshBg(); apply() }
@@ -585,22 +602,20 @@ export function applyAppearance(ctx) {
 
     const advancedGroups = React.createElement(React.Fragment, null,
       React.createElement('div', { className: 'dsh-styl-group' },
-        React.createElement('div', { className: 'dsh-styl-lbl' }, '侧边栏透明度（100% 不透明，0% 完全透明显示背景图）'),
+        React.createElement('div', { className: 'dsh-styl-lbl' }, '界面透明度'),
+        React.createElement('div', { className: 'dsh-styl-sub-lbl' }, '侧边栏透明度（100% 不透明，0% 完全透明显示背景图）'),
         sliderRow('', sidebarOpacity, 0, 100, changeSidebarOpacity, false),
         React.createElement('div', { className: 'dsh-styl-hint' }, '中间值即半透明效果：背景图透出但被主题底色压暗，保证文字可读。'),
-      ),
-      React.createElement('div', { className: 'dsh-styl-group' },
-        React.createElement('div', { className: 'dsh-styl-lbl' }, '右侧对话框（用户气泡）透明度'),
+        React.createElement('div', { className: 'dsh-styl-sub-lbl' }, '右侧对话框（用户气泡）透明度'),
         sliderRow('', bubbleOpacity, 0, 100, changeBubbleOpacity, false),
-      ),
-      React.createElement('div', { className: 'dsh-styl-group' },
-        React.createElement('div', { className: 'dsh-styl-lbl' }, '下方对话框（输入区）透明度'),
+        React.createElement('div', { className: 'dsh-styl-sub-lbl' }, '下方对话框（输入区）透明度'),
         sliderRow('', inputOpacity, 0, 100, changeInputOpacity, false),
-      ),
-      React.createElement('div', { className: 'dsh-styl-group' },
-        React.createElement('div', { className: 'dsh-styl-lbl' }, 'Markdown 代码块透明度'),
+        React.createElement('div', { className: 'dsh-styl-sub-lbl' }, 'Markdown 代码块透明度'),
         sliderRow('', codeOpacity, 0, 100, changeCodeOpacity, false),
         React.createElement('div', { className: 'dsh-styl-hint' }, '控制回复中代码块主体与标题栏的背景不透明度（含语法高亮底色），100% 为默认。'),
+        React.createElement('div', { className: 'dsh-styl-sub-lbl' }, '文件变更卡片透明度'),
+        sliderRow('', changesCardOpacity, 0, 100, changeChangesCardOpacity, false),
+        React.createElement('div', { className: 'dsh-styl-hint' }, '控制会话中「文件变更」页签卡片的背景透明度，0% 为完全透明，100% 为不透明。'),
       ),
       React.createElement('div', { className: 'dsh-styl-group' },
         React.createElement('div', { className: 'dsh-styl-lbl' }, '输入区折叠'),
@@ -684,16 +699,12 @@ export function applyAppearance(ctx) {
         scaleMode === 'custom'
           ? sliderRow('高度', scalePct, 20, 350, changeScalePct, false, '%')
           : null,
-      ),
-      React.createElement('div', { className: 'dsh-styl-group' },
         React.createElement('div', { className: 'dsh-styl-lbl' }, '位置' + (scaleMode === 'cover' ? '（铺满模式下无效）' : '')),
         sliderRow('水平', posX, 0, 100, changePosX, scaleMode === 'cover'),
         sliderRow('垂直', posY, 0, 100, changePosY, scaleMode === 'cover'),
         React.createElement('div', { className: 'dsh-styl-row' },
           React.createElement('button', { className: 'dsh-styl-btn', disabled: scaleMode === 'cover', onClick: centerPos }, '居中'),
         ),
-      ),
-      React.createElement('div', { className: 'dsh-styl-group' },
         React.createElement('div', { className: 'dsh-styl-lbl' }, '背景图透明度'),
         sliderRow('', opacity, 0, 100, changeOpacity, false),
       ),
