@@ -1,7 +1,7 @@
 # dsh-web-extras
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-0.1.1-blue)
+![Version](https://img.shields.io/badge/version-0.1.2-blue)
 
 DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 
@@ -37,8 +37,8 @@ allowBuilds:
 git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
-pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.1.1；pack 会先自动构建 lib/）
-dsh plugin --profile web add ./dsh-web-extras-0.1.1.tgz
+pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.1.2；pack 会先自动构建 lib/）
+dsh plugin --profile web add ./dsh-web-extras-0.1.2.tgz
 ```
 
 ### 方式三：npm（若已发布）

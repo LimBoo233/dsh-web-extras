@@ -545,12 +545,12 @@ export function applyAppearance(ctx) {
       if (ui.scaleMode !== 'custom') {
         const rect = e.currentTarget.getBoundingClientRect()
         const disp = displaySize(rect.width, rect.height, ui.imgRatio)
-        pct = clamp(Math.round((disp.h / Math.max(1, rect.height)) * 100), 20, 200)
+        pct = clamp(Math.round((disp.h / Math.max(1, rect.height)) * 100), 20, 350)
         ui.scaleMode = 'custom'
         setScaleMode('custom')
       }
       const step = e.deltaY < 0 ? 5 : -5
-      pct = clamp(pct + step, 20, 200)
+      pct = clamp(pct + step, 20, 350)
       ui.scalePct = pct
       setScalePct(pct)
       apply()
@@ -682,7 +682,7 @@ export function applyAppearance(ctx) {
           React.createElement('button', { className: 'dsh-styl-btn' + (scaleMode === 'custom' ? ' active' : ''), onClick: () => pickScaleMode('custom') }, '自定义高度'),
         ),
         scaleMode === 'custom'
-          ? sliderRow('高度', scalePct, 20, 200, changeScalePct, false, '%')
+          ? sliderRow('高度', scalePct, 20, 350, changeScalePct, false, '%')
           : null,
       ),
       React.createElement('div', { className: 'dsh-styl-group' },
