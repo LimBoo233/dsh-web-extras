@@ -11,8 +11,7 @@
   },
   "files": [
     "lib",
-    "cordis.patch.yml",
-    "docs"
+    "cordis.patch.yml"
   ],
   "dsh": {
     "bundle": {

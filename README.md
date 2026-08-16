@@ -76,7 +76,7 @@ dsh plugin --profile web remove dsh-web-extras
 
 ### v0.2.1
 
-- 新增「文件变更」效果预览截图（已压缩），并将 docs 目录纳入发布包。
+- 新增「文件变更」效果预览截图（已压缩）；docs 目录仅保留在仓库中用于 GitHub 展示，不随发布包分发。
 
 ### v0.2.0
 
