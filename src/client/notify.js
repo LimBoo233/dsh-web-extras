@@ -1,6 +1,6 @@
 /**
- * 完成/审批提醒：会话完成，或会话中的工具申请权限（等待审批）时，
- * 播放提示音（可开关/试听）并弹出立绘图片。
+ * 完成/审批/提问提醒：会话完成、会话中的工具申请权限（等待审批）、
+ * 或 AI 向你提问（等待回答）时，播放对应提示音（可开关/试听）并弹出立绘图片。
  * 立绘支持上传/替换/移除、拖动缩放、水平翻转、遮罩裁剪（高分辨率输出），
  * 图片内容持久化在 IndexedDB，开关状态持久化在 localStorage。
  */
@@ -11,11 +11,20 @@ const KEY = 'dsh-ntfy-config'
 const CROP = 240
 const PAD = 28
 
+/** 三种事件各自的提示音（频率 Hz, 延迟秒）。完成=上行双音；审批=急促三连；提问=下行双音。 */
+const SOUNDS = {
+  done: [[880, 0], [1318.5, 0.18]],
+  approval: [[987.77, 0], [987.77, 0.25], [1174.66, 0.5]],
+  question: [[1174.66, 0], [880, 0.22]],
+}
+/** 三种事件各自的弹窗文案后缀。 */
+const KIND_TEXT = { done: '已完成', approval: '正在申请权限', question: '正在向你提问' }
+
 export function applyNotify(ctx) {
   const slots = ctx.get('slots')
   if (slots === undefined) return
 
-  const state = { sound: true, showImage: true, approvalSound: true, approvalImage: true, objUrl: null }
+  const state = { sound: true, showImage: true, approvalSound: true, approvalImage: true, questionSound: true, questionImage: true, objUrl: null }
 
   const load = () => {
     try {
@@ -26,6 +35,8 @@ export function applyNotify(ctx) {
         if (typeof c.showImage === 'boolean') state.showImage = c.showImage
         if (typeof c.approvalSound === 'boolean') state.approvalSound = c.approvalSound
         if (typeof c.approvalImage === 'boolean') state.approvalImage = c.approvalImage
+        if (typeof c.questionSound === 'boolean') state.questionSound = c.questionSound
+        if (typeof c.questionImage === 'boolean') state.questionImage = c.questionImage
       } else {
         const old = localStorage.getItem('dsh-ntfy-sound')
         if (old !== null) state.sound = old === '1' || old === 'true'
@@ -33,7 +44,7 @@ export function applyNotify(ctx) {
     } catch { /* storage unavailable */ }
   }
   const save = () => {
-    try { localStorage.setItem(KEY, JSON.stringify({ sound: state.sound, showImage: state.showImage, approvalSound: state.approvalSound, approvalImage: state.approvalImage })) } catch { /* storage unavailable */ }
+    try { localStorage.setItem(KEY, JSON.stringify({ sound: state.sound, showImage: state.showImage, approvalSound: state.approvalSound, approvalImage: state.approvalImage, questionSound: state.questionSound, questionImage: state.questionImage })) } catch { /* storage unavailable */ }
   }
   load()
 
@@ -89,11 +100,22 @@ export function applyNotify(ctx) {
 
   styles.insert(`
 .dsh-ntfy-section { display: flex; flex-direction: column; gap: 14px; }
+.dsh-ntfy-group { display: flex; flex-direction: column; gap: 10px; }
+.dsh-ntfy-group-label { font-size: 12px; font-weight: 600; color: var(--dsw-alias-label-secondary); }
+.dsh-ntfy-card { display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; background: var(--dsw-alias-bg-layer-1); padding: 12px 14px; }
+.dsh-ntfy-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dsh-ntfy-card-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--dsw-alias-label-primary); }
+.dsh-ntfy-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.dsh-ntfy-dot.done { background: #34c759; }
+.dsh-ntfy-dot.approval { background: #ff9f0a; }
+.dsh-ntfy-dot.question { background: #4d6bfe; }
+.dsh-ntfy-card-toggles { display: flex; gap: 18px; flex-wrap: wrap; }
 .dsh-ntfy-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--dsw-alias-label-primary); cursor: pointer; user-select: none; }
 .dsh-ntfy-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: #4d6bfe; cursor: pointer; }
 .dsh-ntfy-test { align-self: flex-start; font-size: 13px; color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 6px 14px; cursor: pointer; }
 .dsh-ntfy-test:hover { background: var(--dsw-alias-bg-layer-2); }
 .dsh-ntfy-test:disabled { opacity: 0.5; cursor: not-allowed; }
+.dsh-ntfy-test.small { padding: 3px 10px; font-size: 12px; }
 .dsh-ntfy-test.on { border-color: #4d6bfe; color: #4d6bfe; }
 .dsh-ntfy-test.strong { font-weight: 700; border-color: #4d6bfe; color: #4d6bfe; }
 .dsh-ntfy-label { font-size: 12px; font-weight: 600; color: var(--dsw-alias-label-secondary); margin-bottom: 8px; }
@@ -119,13 +141,12 @@ export function applyNotify(ctx) {
 .dsh-ntfy-toast-item { background: var(--dsw-alias-bg-overlay); border: 1px solid var(--dsw-alias-border-l2); border-radius: 12px; padding: 8px 14px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.18); font-size: 13px; color: var(--dsw-alias-label-primary); line-height: 18px; }
 `)
 
-  const chime = () => {
+  const chime = (notes) => {
     try {
       const AC = typeof globalThis !== 'undefined' && (globalThis.AudioContext || globalThis.webkitAudioContext)
       if (!AC) return
       const ac = new AC()
       const now = ac.currentTime
-      const notes = [[880, 0], [1318.5, 0.18]]
       notes.forEach(([freq, delay]) => {
         const osc = ac.createOscillator()
         const gain = ac.createGain()
@@ -154,7 +175,7 @@ export function applyNotify(ctx) {
         const row = byId[id]
         if (!row || row.blank) continue
         if (prevRunning.current[id] === true && !row.running) {
-          if (state.sound) chime()
+          if (state.sound) chime(SOUNDS.done)
           if (state.showImage) {
             seq.current += 1
             const tid = seq.current
@@ -165,13 +186,15 @@ export function applyNotify(ctx) {
         }
         const pend = row.pendingInteraction || null
         const prevPend = prevPending.current[id]
-        if (pend === 'approval' && prevPend !== undefined && prevPend !== 'approval') {
-          if (state.approvalSound) chime()
-          if (state.approvalImage) {
+        if ((pend === 'approval' || pend === 'question') && prevPend !== undefined && prevPend !== pend) {
+          const soundKey = pend === 'approval' ? 'approvalSound' : 'questionSound'
+          const imageKey = pend === 'approval' ? 'approvalImage' : 'questionImage'
+          if (state[soundKey]) chime(SOUNDS[pend])
+          if (state[imageKey]) {
             seq.current += 1
             const tid = seq.current
             const title = row.displayTitle || row.id
-            setToasts((list) => [...list, { id: tid, kind: 'approval', title }])
+            setToasts((list) => [...list, { id: tid, kind: pend, title }])
             ctx.timeout(() => setToasts((list) => list.filter((t) => t.id !== tid)), 10000)
           }
         }
@@ -190,7 +213,7 @@ export function applyNotify(ctx) {
           ? React.createElement('img', { className: 'dsh-ntfy-pop-img', src: state.objUrl, alt: '立绘' })
           : null,
         React.createElement('div', { className: 'dsh-ntfy-toast-item' },
-          t.kind === 'approval' ? t.title + ' 正在申请权限' : t.title + ' 已完成'),
+          t.title + ' ' + (KIND_TEXT[t.kind] || '')),
       )),
     )
   }
@@ -313,39 +336,48 @@ export function applyNotify(ctx) {
       force()
     }
 
-    return React.createElement('div', { className: 'dsh-ntfy-section' },
-      React.createElement('label', { className: 'dsh-ntfy-row' },
-        React.createElement('input', { type: 'checkbox', defaultChecked: state.sound, onChange: (e) => { state.sound = e.target.checked; save() } }),
-        React.createElement('span', null, '会话完成时播放提示音'),
-      ),
-      React.createElement('label', { className: 'dsh-ntfy-row' },
-        React.createElement('input', { type: 'checkbox', defaultChecked: state.showImage, onChange: (e) => { state.showImage = e.target.checked; save() } }),
-        React.createElement('span', null, '会话完成时弹出立绘图片'),
-      ),
-      React.createElement('label', { className: 'dsh-ntfy-row' },
-        React.createElement('input', { type: 'checkbox', defaultChecked: state.approvalSound, onChange: (e) => { state.approvalSound = e.target.checked; save() } }),
-        React.createElement('span', null, '申请权限时播放提示音'),
-      ),
-      React.createElement('label', { className: 'dsh-ntfy-row' },
-        React.createElement('input', { type: 'checkbox', defaultChecked: state.approvalImage, onChange: (e) => { state.approvalImage = e.target.checked; save() } }),
-        React.createElement('span', null, '申请权限时弹出立绘图片'),
-      ),
-      React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: () => chime() }, '▶ 试听提示音'),
-      React.createElement('div', null,
-        React.createElement('div', { className: 'dsh-ntfy-label' }, '提醒立绘'),
-        state.objUrl
-          ? React.createElement('div', { className: 'dsh-ntfy-preview' }, React.createElement('img', { src: state.objUrl, alt: '立绘预览' }))
-          : React.createElement('div', { className: 'dsh-ntfy-hint' }, '尚未上传图片，提醒时仅显示文字提示'),
-        React.createElement('div', { className: 'dsh-ntfy-crop-actions' },
-          React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: () => { if (fileRef.current) fileRef.current.click() } }, state.objUrl ? '替换图片' : '上传图片'),
-          state.objUrl ? React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: remove }, '移除图片') : null,
+    const eventCard = (kind, title, soundKey, imageKey) => React.createElement('div', { className: 'dsh-ntfy-card' },
+      React.createElement('div', { className: 'dsh-ntfy-card-head' },
+        React.createElement('span', { className: 'dsh-ntfy-card-title' },
+          React.createElement('span', { className: 'dsh-ntfy-dot ' + kind }),
+          title,
         ),
-        React.createElement('input', { ref: fileRef, type: 'file', accept: 'image/*', style: { display: 'none' }, onChange: onFile }),
+        React.createElement('button', { className: 'dsh-ntfy-test small', type: 'button', onClick: () => chime(SOUNDS[kind]) }, '▶ 试听'),
       ),
-      state.objUrl
-        ? React.createElement(CropEditor, { src: state.objUrl, onCrop: onCrop })
-        : null,
-      React.createElement('div', { className: 'dsh-ntfy-hint' }, '提示音由浏览器 Web Audio 实时合成；上传的立绘可拖动、缩放、水平翻转并裁剪中间方框，裁剪结果以高分辨率保存到本地（IndexedDB）并自动记住。会话完成与工具申请权限时都会弹出提醒。'),
+      React.createElement('div', { className: 'dsh-ntfy-card-toggles' },
+        React.createElement('label', { className: 'dsh-ntfy-row' },
+          React.createElement('input', { type: 'checkbox', defaultChecked: state[soundKey], onChange: (e) => { state[soundKey] = e.target.checked; save() } }),
+          React.createElement('span', null, '播放提示音'),
+        ),
+        React.createElement('label', { className: 'dsh-ntfy-row' },
+          React.createElement('input', { type: 'checkbox', defaultChecked: state[imageKey], onChange: (e) => { state[imageKey] = e.target.checked; save() } }),
+          React.createElement('span', null, '弹出立绘图片'),
+        ),
+      ),
+    )
+
+    return React.createElement('div', { className: 'dsh-ntfy-section' },
+      React.createElement('div', { className: 'dsh-ntfy-group' },
+        React.createElement('div', { className: 'dsh-ntfy-group-label' }, '提醒事件'),
+        eventCard('done', '会话完成', 'sound', 'showImage'),
+        eventCard('approval', '申请权限', 'approvalSound', 'approvalImage'),
+        eventCard('question', '向你提问', 'questionSound', 'questionImage'),
+      ),
+      React.createElement('div', { className: 'dsh-ntfy-group' },
+        React.createElement('div', { className: 'dsh-ntfy-group-label' }, '提醒立绘'),
+        React.createElement('div', { className: 'dsh-ntfy-card' },
+          state.objUrl
+            ? React.createElement('div', { className: 'dsh-ntfy-preview' }, React.createElement('img', { src: state.objUrl, alt: '立绘预览' }))
+            : React.createElement('div', { className: 'dsh-ntfy-hint' }, '尚未上传图片，提醒时仅显示文字提示'),
+          React.createElement('div', { className: 'dsh-ntfy-crop-actions' },
+            React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: () => { if (fileRef.current) fileRef.current.click() } }, state.objUrl ? '替换图片' : '上传图片'),
+            state.objUrl ? React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: remove }, '移除图片') : null,
+          ),
+          React.createElement('input', { ref: fileRef, type: 'file', accept: 'image/*', style: { display: 'none' }, onChange: onFile }),
+          state.objUrl ? React.createElement(CropEditor, { src: state.objUrl, onCrop: onCrop }) : null,
+        ),
+      ),
+      React.createElement('div', { className: 'dsh-ntfy-hint' }, '提示音由浏览器 Web Audio 实时合成，三种事件音效各不相同；上传的立绘可拖动、缩放、水平翻转并裁剪中间方框，裁剪结果以高分辨率保存到本地（IndexedDB）并自动记住。会话完成、工具申请权限、AI 向你提问时都会弹出提醒。'),
     )
   }
 
@@ -355,7 +387,7 @@ export function applyNotify(ctx) {
   ))
 
   slots.inject('settings.section', () => slots.register(
-    { name: 'settings.section', id: 'completion-sound', order: 28, label: '完成提醒' },
+    { name: 'settings.section', id: 'notify-settings', order: 28, label: '提醒设置' },
     () => React.createElement(SoundSettings),
   ))
 }

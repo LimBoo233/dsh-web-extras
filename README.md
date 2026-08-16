@@ -1,11 +1,11 @@
 # dsh-web-extras
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-0.1.3-blue)
+![Version](https://img.shields.io/badge/version-0.1.4-blue)
 
 DeepSeek Harness Web 界面增强插件（bundle），包含两个功能：
 
-1. **完成/审批提醒**：会话完成，或会话中的工具申请权限（等待审批）时播放提示音（可开关/试听），并可弹出立绘图片（支持上传/裁剪/翻转）。
+1. **完成/审批/提问提醒**：会话完成、会话中的工具申请权限（等待审批）、或 AI 向你提问（等待回答）时，播放提示音（三种事件音效各不相同，可开关/试听），并可弹出立绘图片（支持上传/裁剪/翻转）。
 2. **外观定制**：背景图（URL / 本地图片 + 水平翻转 + 预览 + 缩放 + 位置 + 透明度）、侧边栏/气泡/输入区/代码块透明度、输入区失焦折叠。
 
 纯浏览器端实现（client 插件），无 Host 侧代码；所有配置与图片数据保存在本地浏览器，不经过任何服务器。
@@ -37,8 +37,8 @@ allowBuilds:
 git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
-pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.1.3；pack 会先自动构建 lib/）
-dsh plugin --profile web add ./dsh-web-extras-0.1.3.tgz
+pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.1.4；pack 会先自动构建 lib/）
+dsh plugin --profile web add ./dsh-web-extras-0.1.4.tgz
 ```
 
 ### 方式三：npm（若已发布）
@@ -57,19 +57,20 @@ dsh plugin --profile web remove dsh-web-extras
 
 安装后浏览器设置页会出现两个新入口：
 
-- 设置 → **完成提醒**：完成/审批提醒的提示音开关、试听、立绘开关、上传/替换/移除立绘、拖动缩放 + 水平翻转 + 遮罩裁剪（高分辨率输出）。
+- 设置 → **提醒设置**：三种提醒事件（会话完成 / 申请权限 / 向你提问）各自的提示音开关与立绘开关、逐个试听、立绘上传/替换/移除、拖动缩放 + 水平翻转 + 遮罩裁剪（高分辨率输出）。
 - 设置 → **外观**：背景图 URL/本地图片、水平翻转、与窗口同比例的实时预览（拖拽定位、滚轮缩放）、缩放模式、位置、背景图透明度；展开「高级选项」可调侧边栏/气泡/输入区/代码块透明度与输入区折叠。
 
 提醒触发时机：
 
 - 会话完成：任意会话从「运行中」转为「空闲」时（右下角弹出，6 秒自动消失，点击可关闭）。
 - 申请权限：任意会话出现待审批的工具操作时（右下角弹出，10 秒自动消失，点击可关闭）。
+- 向你提问：任意会话等待你回答 AI 的问题时（右下角弹出，10 秒自动消失，点击可关闭）。
 
-完成与审批提醒共用同一张立绘图片与独立的开关，可在设置页分别配置提示音和立绘是否弹出。
+三种事件播放不同的提示音（完成=上行双音、审批=急促三连音、提问=下行双音），共用同一张立绘图片，且每项都可在设置页分别开关。
 
 ## 效果预览
 
-**完成/审批提醒设置页**（提示音/立绘开关 + 立绘上传/裁剪/翻转）：
+**提醒设置页**（三种事件卡片 + 逐个试听 + 立绘上传/裁剪/翻转）：
 
 ![完成提醒设置页](docs/screenshot-notify.png)
 
@@ -81,7 +82,7 @@ dsh plugin --profile web remove dsh-web-extras
 
 | 数据 | 存储位置 | 说明 |
 |---|---|---|
-| 提醒设置 | localStorage `dsh-ntfy-config` | 完成/审批的提示音与立绘开关 |
+| 提醒设置 | localStorage `dsh-ntfy-config` | 完成/审批/提问的提示音与立绘开关 |
 | 立绘图片内容 | IndexedDB `dsh-ntfy-store` | 上传/裁剪后的图片，刷新后自动恢复 |
 | 外观设置 | localStorage `dsh-styl-config` | 全部数值与开关 |
 | 本地背景图片内容 | IndexedDB `dsh-styl-store` | 刷新后自动恢复，无需重选 |
