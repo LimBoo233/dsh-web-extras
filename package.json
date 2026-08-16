@@ -1,7 +1,7 @@
 {
   "name": "dsh-web-extras",
-  "version": "0.1.2",
-  "description": "DeepSeek Harness Web 增强插件：会话完成提醒（提示音 + 立绘弹窗，支持裁剪/翻转/本地持久化）与外观定制（背景图、透明度、输入区折叠）。",
+  "version": "0.1.3",
+  "description": "DeepSeek Harness Web 增强插件：完成/审批提醒（会话完成或工具申请权限时播放提示音 + 立绘弹窗，支持裁剪/翻转/本地持久化）与外观定制（背景图、透明度、输入区折叠）。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

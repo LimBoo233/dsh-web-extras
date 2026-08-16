@@ -1,5 +1,6 @@
 /**
- * 完成提醒：会话从运行转为空闲时播放提示音（可开关/试听）并弹出立绘图片。
+ * 完成/审批提醒：会话完成，或会话中的工具申请权限（等待审批）时，
+ * 播放提示音（可开关/试听）并弹出立绘图片。
  * 立绘支持上传/替换/移除、拖动缩放、水平翻转、遮罩裁剪（高分辨率输出），
  * 图片内容持久化在 IndexedDB，开关状态持久化在 localStorage。
  */
@@ -14,7 +15,7 @@ export function applyNotify(ctx) {
   const slots = ctx.get('slots')
   if (slots === undefined) return
 
-  const state = { sound: true, showImage: true, objUrl: null }
+  const state = { sound: true, showImage: true, approvalSound: true, approvalImage: true, objUrl: null }
 
   const load = () => {
     try {
@@ -23,6 +24,8 @@ export function applyNotify(ctx) {
         const c = JSON.parse(raw)
         if (typeof c.sound === 'boolean') state.sound = c.sound
         if (typeof c.showImage === 'boolean') state.showImage = c.showImage
+        if (typeof c.approvalSound === 'boolean') state.approvalSound = c.approvalSound
+        if (typeof c.approvalImage === 'boolean') state.approvalImage = c.approvalImage
       } else {
         const old = localStorage.getItem('dsh-ntfy-sound')
         if (old !== null) state.sound = old === '1' || old === 'true'
@@ -30,7 +33,7 @@ export function applyNotify(ctx) {
     } catch { /* storage unavailable */ }
   }
   const save = () => {
-    try { localStorage.setItem(KEY, JSON.stringify({ sound: state.sound, showImage: state.showImage })) } catch { /* storage unavailable */ }
+    try { localStorage.setItem(KEY, JSON.stringify({ sound: state.sound, showImage: state.showImage, approvalSound: state.approvalSound, approvalImage: state.approvalImage })) } catch { /* storage unavailable */ }
   }
   load()
 
@@ -144,6 +147,7 @@ export function applyNotify(ctx) {
     const byId = props.useSessions((s) => s.byId)
     const [toasts, setToasts] = React.useState([])
     const prevRunning = React.useRef({})
+    const prevPending = React.useRef({})
     const seq = React.useRef(0)
     React.useEffect(() => {
       for (const id of Object.keys(byId)) {
@@ -155,10 +159,23 @@ export function applyNotify(ctx) {
             seq.current += 1
             const tid = seq.current
             const title = row.displayTitle || row.id
-            setToasts((list) => [...list, { id: tid, title }])
+            setToasts((list) => [...list, { id: tid, kind: 'done', title }])
             ctx.timeout(() => setToasts((list) => list.filter((t) => t.id !== tid)), 6000)
           }
         }
+        const pend = row.pendingInteraction || null
+        const prevPend = prevPending.current[id]
+        if (pend === 'approval' && prevPend !== undefined && prevPend !== 'approval') {
+          if (state.approvalSound) chime()
+          if (state.approvalImage) {
+            seq.current += 1
+            const tid = seq.current
+            const title = row.displayTitle || row.id
+            setToasts((list) => [...list, { id: tid, kind: 'approval', title }])
+            ctx.timeout(() => setToasts((list) => list.filter((t) => t.id !== tid)), 10000)
+          }
+        }
+        prevPending.current[id] = pend
         prevRunning.current[id] = !!row.running
       }
     }, [byId])
@@ -172,7 +189,8 @@ export function applyNotify(ctx) {
         state.objUrl
           ? React.createElement('img', { className: 'dsh-ntfy-pop-img', src: state.objUrl, alt: '立绘' })
           : null,
-        React.createElement('div', { className: 'dsh-ntfy-toast-item' }, t.title + ' 已完成'),
+        React.createElement('div', { className: 'dsh-ntfy-toast-item' },
+          t.kind === 'approval' ? t.title + ' 正在申请权限' : t.title + ' 已完成'),
       )),
     )
   }
@@ -304,12 +322,20 @@ export function applyNotify(ctx) {
         React.createElement('input', { type: 'checkbox', defaultChecked: state.showImage, onChange: (e) => { state.showImage = e.target.checked; save() } }),
         React.createElement('span', null, '会话完成时弹出立绘图片'),
       ),
+      React.createElement('label', { className: 'dsh-ntfy-row' },
+        React.createElement('input', { type: 'checkbox', defaultChecked: state.approvalSound, onChange: (e) => { state.approvalSound = e.target.checked; save() } }),
+        React.createElement('span', null, '申请权限时播放提示音'),
+      ),
+      React.createElement('label', { className: 'dsh-ntfy-row' },
+        React.createElement('input', { type: 'checkbox', defaultChecked: state.approvalImage, onChange: (e) => { state.approvalImage = e.target.checked; save() } }),
+        React.createElement('span', null, '申请权限时弹出立绘图片'),
+      ),
       React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: () => chime() }, '▶ 试听提示音'),
       React.createElement('div', null,
-        React.createElement('div', { className: 'dsh-ntfy-label' }, '完成立绘'),
+        React.createElement('div', { className: 'dsh-ntfy-label' }, '提醒立绘'),
         state.objUrl
           ? React.createElement('div', { className: 'dsh-ntfy-preview' }, React.createElement('img', { src: state.objUrl, alt: '立绘预览' }))
-          : React.createElement('div', { className: 'dsh-ntfy-hint' }, '尚未上传图片，完成时仅显示文字提示'),
+          : React.createElement('div', { className: 'dsh-ntfy-hint' }, '尚未上传图片，提醒时仅显示文字提示'),
         React.createElement('div', { className: 'dsh-ntfy-crop-actions' },
           React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: () => { if (fileRef.current) fileRef.current.click() } }, state.objUrl ? '替换图片' : '上传图片'),
           state.objUrl ? React.createElement('button', { className: 'dsh-ntfy-test', type: 'button', onClick: remove }, '移除图片') : null,
@@ -319,7 +345,7 @@ export function applyNotify(ctx) {
       state.objUrl
         ? React.createElement(CropEditor, { src: state.objUrl, onCrop: onCrop })
         : null,
-      React.createElement('div', { className: 'dsh-ntfy-hint' }, '提示音由浏览器 Web Audio 实时合成；上传的立绘可拖动、缩放、水平翻转并裁剪中间方框，裁剪结果以高分辨率保存到本地（IndexedDB）并自动记住。'),
+      React.createElement('div', { className: 'dsh-ntfy-hint' }, '提示音由浏览器 Web Audio 实时合成；上传的立绘可拖动、缩放、水平翻转并裁剪中间方框，裁剪结果以高分辨率保存到本地（IndexedDB）并自动记住。会话完成与工具申请权限时都会弹出提醒。'),
     )
   }
 
