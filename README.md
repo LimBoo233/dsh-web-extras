@@ -1,7 +1,7 @@
 # dsh-web-extras
 
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-0.2.1-blue)
+![Version](https://img.shields.io/badge/version-0.2.2-blue)
 
 DeepSeek Harness Web 界面增强插件（bundle），包含三个功能：
 
@@ -38,8 +38,8 @@ allowBuilds:
 git clone https://github.com/LimBoo233/dsh-web-extras.git
 cd dsh-web-extras
 pnpm install
-pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.2.1；pack 会先自动构建 lib/）
-dsh plugin --profile web add ./dsh-web-extras-0.2.1.tgz
+pnpm pack          # 生成 dsh-web-extras-<版本号>.tgz（当前 0.2.2；pack 会先自动构建 lib/）
+dsh plugin --profile web add ./dsh-web-extras-0.2.2.tgz
 ```
 
 ### 卸载
@@ -67,6 +67,11 @@ dsh plugin --profile web remove dsh-web-extras
 文件变更页签只读取 DSH 会话快照中已有的 diff 展示数据（write / edit / str_replace_editor 的结果视图），不产生新的网络请求，也不持久化任何数据。
 
 ## 变更日志
+
+### v0.2.2
+
+- 修复：文件卡片关闭「行级差异」或「高亮对比」任一视图后，文件体顶部会出现对应的「打开…」按钮，可随时重新打开，不再出现无法恢复的死胡同。
+- 优化：「打开…」重开栏按钮水平居中，并压缩竖向占用空间。
 
 ### v0.2.1
 
