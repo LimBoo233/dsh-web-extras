@@ -538,9 +538,9 @@ const CSS = `
 .dsh-chg-prompt.open .dsh-chg-prompt-text { white-space: pre-wrap; overflow: visible; text-overflow: clip; }
 .dsh-chg-prompt-toggle { flex: none; font-size: 11px; color: var(--dsw-alias-label-secondary); }
 .dsh-chg-empty { padding: 20px 12px; color: var(--dsw-alias-label-secondary); font-size: 12px; text-align: center; }
-.dsh-chg-reopen { display: flex; gap: 8px; justify-content: center; padding: 10px; }
+.dsh-chg-reopen { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 5px 10px; }
 .dsh-chg-reopen + .dsh-chg-views { border-top: 1px solid var(--dsw-alias-border-l2); }
-.dsh-chg-reopen-btn { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+.dsh-chg-reopen-btn { display: inline-flex; align-items: center; background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 3px 10px; font-size: 12px; line-height: 16px; cursor: pointer; }
 .dsh-chg-reopen-btn:hover { background: var(--dsw-alias-bg-overlay); }
 `
 
