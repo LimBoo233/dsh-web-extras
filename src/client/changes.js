@@ -6,7 +6,8 @@
  * 每个文件卡片提供两个可独立开关的视图：
  *  - 行级差异：+ / - / 上下文行，精确显示增删了哪些行。
  *  - 高亮对比：两个 CodeBlock 展示「修改前 / 修改后」，复用平台 Shiki 高亮。
- * 两个视图可同时打开（左右并排），也可分别关闭以节省空间。
+ * 两个视图可同时打开（左右并排），也可分别关闭以节省空间；
+ * 任一视图关闭后，文件体顶部会出现对应的「打开…」按钮用于重新打开。
  */
 import * as React from 'react'
 import { CodeBlock } from '@deepseek-ai/dsh-client-ui-primitives'
@@ -386,12 +387,18 @@ function FileCard(props) {
     ),
     open
       ? el('div', { className: 'dsh-chg-file-body' },
-          viewCount === 0
+          viewCount < 2
             ? el('div', { className: 'dsh-chg-reopen' },
-                el('button', { type: 'button', className: 'dsh-chg-reopen-btn', onClick: () => setDiffOpen(true) }, '打开行级差异'),
-                el('button', { type: 'button', className: 'dsh-chg-reopen-btn', onClick: () => setCodeOpen(true) }, '打开高亮对比'),
+                !diffOpen
+                  ? el('button', { type: 'button', className: 'dsh-chg-reopen-btn', onClick: () => setDiffOpen(true) }, '打开行级差异')
+                  : null,
+                !codeOpen
+                  ? el('button', { type: 'button', className: 'dsh-chg-reopen-btn', onClick: () => setCodeOpen(true) }, '打开高亮对比')
+                  : null,
               )
-            : el('div', { className: 'dsh-chg-views' + (viewCount === 2 ? ' two' : '') },
+            : null,
+          viewCount > 0
+            ? el('div', { className: 'dsh-chg-views' + (viewCount === 2 ? ' two' : '') },
                 diffOpen
                   ? el(ViewCard, { title: '行级差异', onClose: () => setDiffOpen(false) },
                       el(DiffRows, { rows: item.rows }))
@@ -400,7 +407,8 @@ function FileCard(props) {
                   ? el(ViewCard, { title: '高亮对比', onClose: () => setCodeOpen(false) },
                       el(CodeCompare, { hunks: item.hunks, lang }))
                   : null,
-              ),
+              )
+            : null,
         )
       : null,
   )
@@ -530,7 +538,8 @@ const CSS = `
 .dsh-chg-prompt.open .dsh-chg-prompt-text { white-space: pre-wrap; overflow: visible; text-overflow: clip; }
 .dsh-chg-prompt-toggle { flex: none; font-size: 11px; color: var(--dsw-alias-label-secondary); }
 .dsh-chg-empty { padding: 20px 12px; color: var(--dsw-alias-label-secondary); font-size: 12px; text-align: center; }
-.dsh-chg-reopen { display: flex; gap: 8px; justify-content: center; padding: 12px 10px; }
+.dsh-chg-reopen { display: flex; gap: 8px; justify-content: center; padding: 10px; }
+.dsh-chg-reopen + .dsh-chg-views { border-top: 1px solid var(--dsw-alias-border-l2); }
 .dsh-chg-reopen-btn { background: var(--dsw-alias-bg-layer-2); border: 1px solid var(--dsw-alias-border-l2); color: var(--dsw-alias-label-primary); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
 .dsh-chg-reopen-btn:hover { background: var(--dsw-alias-bg-overlay); }
 `
