@@ -5,7 +5,8 @@
  *
  * 每个文件卡片提供两个可独立开关的视图：
  *  - 行级差异：+ / - / 上下文行，精确显示增删了哪些行。
- *  - 高亮对比：两个 CodeBlock 展示「修改前 / 修改后」，复用平台 Shiki 高亮。
+ *  - 高亮对比：两个可折叠的 CodeBlock 展示「修改后 / 修改前」，复用平台 Shiki 高亮；
+ *    默认只展开「修改后」，双视图并排时右侧高度跟随左侧行级差异、内容可滚动。
  * 两个视图可同时打开（左右并排），也可分别关闭以节省空间；
  * 任一视图关闭后，文件体顶部会出现对应的「打开…」按钮用于重新打开。
  */
@@ -319,6 +320,9 @@ function DiffRows(props) {
 function CodeCompare(props) {
   const hunks = props.hunks || []
   const lang = props.lang
+  // 修改后默认展开、修改前默认折叠，两者可独立切换。
+  const [afterOpen, setAfterOpen] = React.useState(true)
+  const [beforeOpen, setBeforeOpen] = React.useState(false)
   const beforeParts = []
   const afterParts = []
   for (const hunk of hunks) {
@@ -330,18 +334,31 @@ function CodeCompare(props) {
   const hasBefore = beforeText.trim() !== ''
   const hasAfter = afterText.trim() !== ''
 
+  const section = (label, open, onToggle, content) =>
+    el('div', { className: 'dsh-chg-code-side' },
+      el('button', {
+        type: 'button',
+        className: 'dsh-chg-code-toggle' + (open ? ' open' : ''),
+        onClick: onToggle,
+        'aria-expanded': open ? 'true' : 'false',
+      },
+        el('span', { className: 'dsh-chg-code-toggle-label' }, label),
+        el('span', { className: 'dsh-chg-code-toggle-mark' }, open ? '收起' : '展开'),
+      ),
+      open ? content : null,
+    )
+
+  // 修改后在前、修改前在后。
   return el('div', { className: 'dsh-chg-codegrid' },
-    el('div', { className: 'dsh-chg-code-side' },
-      el('div', { className: 'dsh-chg-code-label' }, '修改前'),
-      hasBefore
-        ? el(CodeBlock, { code: beforeText, lang, className: 'dsh-chg-codeblock' })
-        : el('div', { className: 'dsh-chg-empty' }, '新文件，无修改前内容'),
-    ),
-    el('div', { className: 'dsh-chg-code-side' },
-      el('div', { className: 'dsh-chg-code-label' }, '修改后'),
+    section('修改后', afterOpen, () => setAfterOpen((value) => !value),
       hasAfter
         ? el(CodeBlock, { code: afterText, lang, className: 'dsh-chg-codeblock' })
         : el('div', { className: 'dsh-chg-empty' }, '内容已清空'),
+    ),
+    section('修改前', beforeOpen, () => setBeforeOpen((value) => !value),
+      hasBefore
+        ? el(CodeBlock, { code: beforeText, lang, className: 'dsh-chg-codeblock' })
+        : el('div', { className: 'dsh-chg-empty' }, '新文件，无修改前内容'),
     ),
   )
 }
@@ -404,8 +421,9 @@ function FileCard(props) {
                       el(DiffRows, { rows: item.rows }))
                   : null,
                 codeOpen
-                  ? el(ViewCard, { title: '高亮对比', onClose: () => setCodeOpen(false) },
-                      el(CodeCompare, { hunks: item.hunks, lang }))
+                  ? el('div', { className: 'dsh-chg-view-anchor' },
+                      el(ViewCard, { title: '高亮对比', onClose: () => setCodeOpen(false) },
+                        el(CodeCompare, { hunks: item.hunks, lang })))
                   : null,
               )
             : null,
@@ -504,8 +522,20 @@ const CSS = `
 .dsh-chg-del { color: #ff453a; }
 .dsh-chg-file-body { min-width: 0; }
 .dsh-chg-views { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; }
-.dsh-chg-views.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-@media (max-width: 900px) { .dsh-chg-views.two { grid-template-columns: minmax(0, 1fr); } }
+.dsh-chg-views.two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: stretch; }
+.dsh-chg-view-anchor { min-width: 0; }
+@media (min-width: 901px) {
+  .dsh-chg-views.two .dsh-chg-view-anchor { position: relative; min-height: 0; }
+  .dsh-chg-views.two .dsh-chg-view-anchor > .dsh-chg-view { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .dsh-chg-views.two .dsh-chg-view-anchor .dsh-chg-view-head { flex: none; }
+  .dsh-chg-views.two .dsh-chg-view-anchor .dsh-chg-view-body { flex: 1 1 auto; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+}
+@media (max-width: 900px) {
+  .dsh-chg-views.two { grid-template-columns: minmax(0, 1fr); }
+  .dsh-chg-views.two .dsh-chg-view-anchor { position: static; }
+  .dsh-chg-views.two .dsh-chg-view-anchor > .dsh-chg-view { position: static; display: block; overflow: hidden; }
+  .dsh-chg-views.two .dsh-chg-view-anchor .dsh-chg-view-body { overflow: visible; }
+}
 .dsh-chg-view { min-width: 0; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) var(--dsh-chg-opacity), transparent); overflow: hidden; }
 .dsh-chg-view-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) var(--dsh-chg-opacity), transparent); border-bottom: 1px solid var(--dsw-alias-border-l2); }
 .dsh-chg-view-title { font-size: 12px; font-weight: 600; color: var(--dsw-alias-label-secondary); }
@@ -523,7 +553,10 @@ const CSS = `
 .dsh-chg-diff-sep { padding: 2px 10px; color: var(--dsw-alias-label-secondary); font-family: var(--ds-font-family-code, ui-monospace, SFMono-Regular, Consolas, monospace); font-size: 12px; }
 .dsh-chg-codegrid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 10px; }
 .dsh-chg-code-side { min-width: 0; }
-.dsh-chg-code-label { font-size: 11px; color: var(--dsw-alias-label-secondary); margin-bottom: 6px; }
+.dsh-chg-code-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-bottom: 6px; padding: 0; background: transparent; border: 0; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 11px; cursor: pointer; text-align: left; }
+.dsh-chg-code-toggle:hover { color: var(--dsw-alias-label-primary); }
+.dsh-chg-code-toggle-label { font-weight: 600; }
+.dsh-chg-code-toggle-mark { flex: none; font-size: 11px; opacity: 0.75; }
 .dsh-chg-code-side .md-code-block { margin: 0; }
 .dsh-chg-controls { display: flex; align-items: center; gap: 10px; padding: 2px 2px 0; }
 .dsh-chg-controls-label { font-size: 12px; color: var(--dsw-alias-label-secondary); }

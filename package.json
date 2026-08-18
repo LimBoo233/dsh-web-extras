@@ -1,6 +1,6 @@
 {
   "name": "dsh-web-extras",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "DeepSeek Harness Web 增强插件：完成/审批/提问提醒（三种事件各有独立音效与立绘弹窗，支持裁剪/翻转/本地持久化）、外观定制（背景图、透明度、输入区折叠），以及按轮次聚合的文件变更页签（行级差异 + 修改前后代码高亮）。",
   "type": "module",
   "main": "lib/index.js",
